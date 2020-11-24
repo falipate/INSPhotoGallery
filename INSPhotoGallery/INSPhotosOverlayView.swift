@@ -21,7 +21,7 @@ import UIKit
 
 public protocol INSPhotosOverlayViewable:class {
     var photosViewController: INSPhotosViewController? { get set }
-    
+
     func populateWithPhoto(_ photo: INSPhotoViewable)
     func setHidden(_ hidden: Bool, animated: Bool)
     func view() -> UIView
@@ -40,6 +40,8 @@ open class INSPhotosOverlayView: UIView , INSPhotosOverlayViewable {
     
     open private(set) var navigationItem: UINavigationItem!
     open weak var photosViewController: INSPhotosViewController?
+    var configuration: INSConfiguration!
+
     private var currentPhoto: INSPhotoViewable?
     
     private var topShadow: CAGradientLayer!
@@ -50,6 +52,7 @@ open class INSPhotosOverlayView: UIView , INSPhotosOverlayViewable {
             navigationItem.leftBarButtonItem = leftBarButtonItem
         }
     }
+    
     open var rightBarButtonItem: UIBarButtonItem? {
         didSet {
             navigationItem.rightBarButtonItem = rightBarButtonItem
@@ -68,9 +71,11 @@ open class INSPhotosOverlayView: UIView , INSPhotosOverlayViewable {
             navigationBar.titleTextAttributes = titleTextAttributes
         }
     }
+    
     #endif
     
-    public override init(frame: CGRect) {
+    init(frame: CGRect, configuration: INSConfiguration) {
+        self.configuration = configuration
         super.init(frame: frame)
         setupShadows()
         setupNavigationBar()
@@ -154,9 +159,14 @@ open class INSPhotosOverlayView: UIView , INSPhotosOverlayViewable {
     }
     
     private func setupNavigationBar() {
+        let spacer = UIView()
+        spacer.translatesAutoresizingMaskIntoConstraints = false
+        spacer.backgroundColor = configuration.navigationBarBackgroundColor
+        addSubview(spacer)
+        
         navigationBar = UINavigationBar()
         navigationBar.translatesAutoresizingMaskIntoConstraints = false
-        navigationBar.backgroundColor = UIColor.clear
+        navigationBar.backgroundColor = configuration.navigationBarBackgroundColor
         navigationBar.barTintColor = nil
         navigationBar.isTranslucent = true
         navigationBar.shadowImage = UIImage()
@@ -166,6 +176,11 @@ open class INSPhotosOverlayView: UIView , INSPhotosOverlayViewable {
         navigationBar.items = [navigationItem]
         addSubview(navigationBar)
         
+        let sTopConstraint: NSLayoutConstraint = NSLayoutConstraint(item: spacer, attribute: .top, relatedBy: .equal, toItem: self, attribute: .top, multiplier: 1.0, constant: 0.0)
+        let sLeadingConstraint: NSLayoutConstraint = NSLayoutConstraint(item: spacer, attribute: .leading, relatedBy: .equal, toItem: self, attribute: .leading, multiplier: 1.0, constant: 0.0)
+        let sTrailingConstraint: NSLayoutConstraint = NSLayoutConstraint(item: spacer, attribute: .trailing, relatedBy: .equal, toItem: self, attribute: .trailing, multiplier: 1.0, constant: 0.0)
+        let sBottomConstraint: NSLayoutConstraint = NSLayoutConstraint(item: spacer, attribute: .bottom, relatedBy: .equal, toItem: navigationBar!, attribute: .bottom, multiplier: 1, constant: 0.0)
+        
         let topConstraint: NSLayoutConstraint
         if #available(iOS 11.0, *) {
             topConstraint = NSLayoutConstraint(item: navigationBar!, attribute: .top, relatedBy: .equal, toItem: self.safeAreaLayoutGuide, attribute: .top, multiplier: 1.0, constant: 0.0)
@@ -174,16 +189,28 @@ open class INSPhotosOverlayView: UIView , INSPhotosOverlayViewable {
         }
         let widthConstraint = NSLayoutConstraint(item: navigationBar!, attribute: .width, relatedBy: .equal, toItem: self, attribute: .width, multiplier: 1.0, constant: 0.0)
         let horizontalPositionConstraint = NSLayoutConstraint(item: navigationBar!, attribute: .centerX, relatedBy: .equal, toItem: self, attribute: .centerX, multiplier: 1.0, constant: 0.0)
-        self.addConstraints([topConstraint,widthConstraint,horizontalPositionConstraint])
         
+        self.addConstraints([topConstraint,
+                             widthConstraint,
+                             horizontalPositionConstraint,
+                             sTopConstraint,
+                             sLeadingConstraint,
+                             sTrailingConstraint,
+                             sBottomConstraint
+                            ])
+        
+        
+        if !configuration.rightBarButtonHidden {
+            rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .action, target: self, action: #selector(INSPhotosOverlayView.actionButtonTapped(_:)))
+        }
+        
+        if configuration.leftBarButtonHidden { return }
         if let bundlePath = Bundle(for: type(of: self)).path(forResource: "INSPhotoGallery", ofType: "bundle") {
             let bundle = Bundle(path: bundlePath)
             leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "INSPhotoGalleryClose", in: bundle, compatibleWith: nil), landscapeImagePhone: UIImage(named: "INSPhotoGalleryCloseLandscape", in: bundle, compatibleWith: nil), style: .plain, target: self, action: #selector(INSPhotosOverlayView.closeButtonTapped(_:)))
         } else {
             leftBarButtonItem = UIBarButtonItem(title: "CLOSE".uppercased(), style: .plain, target: self, action: #selector(INSPhotosOverlayView.closeButtonTapped(_:)))
         }
-        
-        rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .action, target: self, action: #selector(INSPhotosOverlayView.actionButtonTapped(_:)))
     }
     
  
@@ -192,18 +219,30 @@ open class INSPhotosOverlayView: UIView , INSPhotosOverlayViewable {
         captionLabel = UILabel()
         captionLabel.translatesAutoresizingMaskIntoConstraints = false
         captionLabel.backgroundColor = UIColor.clear
+        captionLabel.textColor = configuration.navigationTitleTextColor
         captionLabel.numberOfLines = 0
         addSubview(captionLabel)
         
-        let bottomConstraint = NSLayoutConstraint(item: self, attribute: .bottom, relatedBy: .equal, toItem: captionLabel, attribute: .bottom, multiplier: 1.0, constant: 8.0)
-        let leadingConstraint = NSLayoutConstraint(item: captionLabel!, attribute: .leading, relatedBy: .equal, toItem: self, attribute: .leading, multiplier: 1.0, constant: 8.0)
-        let trailingConstraint = NSLayoutConstraint(item: captionLabel!, attribute: .trailing, relatedBy: .equal, toItem: self, attribute: .trailing, multiplier: 1.0, constant: 8.0)
+        let bottomConstraint: NSLayoutConstraint
+        let leadingConstraint: NSLayoutConstraint
+        let trailingConstraint: NSLayoutConstraint
+        
+        if #available(iOS 11.0, *) {
+            bottomConstraint = NSLayoutConstraint(item: self.safeAreaLayoutGuide, attribute: .bottom, relatedBy: .equal, toItem: captionLabel, attribute: .bottom, multiplier: 1.0, constant: 8.0)
+            leadingConstraint = NSLayoutConstraint(item: captionLabel!, attribute: .leading, relatedBy: .equal, toItem: self.safeAreaLayoutGuide, attribute: .leading, multiplier: 1.0, constant: 8.0)
+            trailingConstraint = NSLayoutConstraint(item: self.safeAreaLayoutGuide, attribute: .trailing, relatedBy: .equal, toItem: captionLabel!, attribute: .trailing, multiplier: 1.0, constant: 8.0)
+        } else {
+            bottomConstraint = NSLayoutConstraint(item: self, attribute: .bottom, relatedBy: .equal, toItem: captionLabel, attribute: .bottom, multiplier: 1.0, constant: 8.0)
+            leadingConstraint = NSLayoutConstraint(item: captionLabel!, attribute: .leading, relatedBy: .equal, toItem: self, attribute: .leading, multiplier: 1.0, constant: 8.0)
+            trailingConstraint = NSLayoutConstraint(item: self, attribute: .trailing, relatedBy: .equal, toItem: captionLabel!, attribute: .trailing, multiplier: 1.0, constant: 8.0)
+        }
+
         self.addConstraints([bottomConstraint,leadingConstraint,trailingConstraint])
     }
     
     private func setupShadows() {
-        let startColor = UIColor.black.withAlphaComponent(0.5)
-        let endColor = UIColor.clear
+        let startColor = configuration.shadowStartColor
+        let endColor = configuration.shadowEndColor
         
         self.topShadow = CAGradientLayer()
         topShadow.colors = [startColor.cgColor, endColor.cgColor]
@@ -212,6 +251,9 @@ open class INSPhotosOverlayView: UIView , INSPhotosOverlayViewable {
         self.bottomShadow = CAGradientLayer()
         bottomShadow.colors = [endColor.cgColor, startColor.cgColor]
         self.layer.insertSublayer(bottomShadow, at: 0)
+        
+        topShadow.isHidden = configuration.shadowHidden
+        bottomShadow.isHidden = configuration.shadowHidden
         
         self.updateShadowFrames()
     }
