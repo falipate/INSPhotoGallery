@@ -65,6 +65,7 @@ extension ViewController: UICollectionViewDataSource, UICollectionViewDelegateFl
         configuration.rightBarButtonHidden = true
         configuration.leftBarButtonHidden = true
         configuration.navigationTitleTextColor = .green
+        configuration.navigationBarBackgroundColor = .blue
         
         let galleryPreview = INSPhotosViewController(photos: photos, initialPhoto: currentPhoto, configuration: configuration)
         if useCustomOverlay {

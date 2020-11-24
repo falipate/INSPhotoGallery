@@ -159,9 +159,14 @@ open class INSPhotosOverlayView: UIView , INSPhotosOverlayViewable {
     }
     
     private func setupNavigationBar() {
+        let spacer = UIView()
+        spacer.translatesAutoresizingMaskIntoConstraints = false
+        spacer.backgroundColor = configuration.navigationBarBackgroundColor
+        addSubview(spacer)
+        
         navigationBar = UINavigationBar()
         navigationBar.translatesAutoresizingMaskIntoConstraints = false
-        navigationBar.backgroundColor = UIColor.clear
+        navigationBar.backgroundColor = configuration.navigationBarBackgroundColor
         navigationBar.barTintColor = nil
         navigationBar.isTranslucent = true
         navigationBar.shadowImage = UIImage()
@@ -171,6 +176,11 @@ open class INSPhotosOverlayView: UIView , INSPhotosOverlayViewable {
         navigationBar.items = [navigationItem]
         addSubview(navigationBar)
         
+        let sTopConstraint: NSLayoutConstraint = NSLayoutConstraint(item: spacer, attribute: .top, relatedBy: .equal, toItem: self, attribute: .top, multiplier: 1.0, constant: 0.0)
+        let sLeadingConstraint: NSLayoutConstraint = NSLayoutConstraint(item: spacer, attribute: .leading, relatedBy: .equal, toItem: self, attribute: .leading, multiplier: 1.0, constant: 0.0)
+        let sTrailingConstraint: NSLayoutConstraint = NSLayoutConstraint(item: spacer, attribute: .trailing, relatedBy: .equal, toItem: self, attribute: .trailing, multiplier: 1.0, constant: 0.0)
+        let sBottomConstraint: NSLayoutConstraint = NSLayoutConstraint(item: spacer, attribute: .bottom, relatedBy: .equal, toItem: navigationBar!, attribute: .bottom, multiplier: 1, constant: 0.0)
+        
         let topConstraint: NSLayoutConstraint
         if #available(iOS 11.0, *) {
             topConstraint = NSLayoutConstraint(item: navigationBar!, attribute: .top, relatedBy: .equal, toItem: self.safeAreaLayoutGuide, attribute: .top, multiplier: 1.0, constant: 0.0)
@@ -179,7 +189,15 @@ open class INSPhotosOverlayView: UIView , INSPhotosOverlayViewable {
         }
         let widthConstraint = NSLayoutConstraint(item: navigationBar!, attribute: .width, relatedBy: .equal, toItem: self, attribute: .width, multiplier: 1.0, constant: 0.0)
         let horizontalPositionConstraint = NSLayoutConstraint(item: navigationBar!, attribute: .centerX, relatedBy: .equal, toItem: self, attribute: .centerX, multiplier: 1.0, constant: 0.0)
-        self.addConstraints([topConstraint,widthConstraint,horizontalPositionConstraint])
+        
+        self.addConstraints([topConstraint,
+                             widthConstraint,
+                             horizontalPositionConstraint,
+                             sTopConstraint,
+                             sLeadingConstraint,
+                             sTrailingConstraint,
+                             sBottomConstraint
+                            ])
         
         
         if !configuration.rightBarButtonHidden {
@@ -205,9 +223,20 @@ open class INSPhotosOverlayView: UIView , INSPhotosOverlayViewable {
         captionLabel.numberOfLines = 0
         addSubview(captionLabel)
         
-        let bottomConstraint = NSLayoutConstraint(item: self, attribute: .bottom, relatedBy: .equal, toItem: captionLabel, attribute: .bottom, multiplier: 1.0, constant: 8.0)
-        let leadingConstraint = NSLayoutConstraint(item: captionLabel!, attribute: .leading, relatedBy: .equal, toItem: self, attribute: .leading, multiplier: 1.0, constant: 8.0)
-        let trailingConstraint = NSLayoutConstraint(item: captionLabel!, attribute: .trailing, relatedBy: .equal, toItem: self, attribute: .trailing, multiplier: 1.0, constant: 8.0)
+        let bottomConstraint: NSLayoutConstraint
+        let leadingConstraint: NSLayoutConstraint
+        let trailingConstraint: NSLayoutConstraint
+        
+        if #available(iOS 11.0, *) {
+            bottomConstraint = NSLayoutConstraint(item: self.safeAreaLayoutGuide, attribute: .bottom, relatedBy: .equal, toItem: captionLabel, attribute: .bottom, multiplier: 1.0, constant: 8.0)
+            leadingConstraint = NSLayoutConstraint(item: captionLabel!, attribute: .leading, relatedBy: .equal, toItem: self.safeAreaLayoutGuide, attribute: .leading, multiplier: 1.0, constant: 8.0)
+            trailingConstraint = NSLayoutConstraint(item: self.safeAreaLayoutGuide, attribute: .trailing, relatedBy: .equal, toItem: captionLabel!, attribute: .trailing, multiplier: 1.0, constant: 8.0)
+        } else {
+            bottomConstraint = NSLayoutConstraint(item: self, attribute: .bottom, relatedBy: .equal, toItem: captionLabel, attribute: .bottom, multiplier: 1.0, constant: 8.0)
+            leadingConstraint = NSLayoutConstraint(item: captionLabel!, attribute: .leading, relatedBy: .equal, toItem: self, attribute: .leading, multiplier: 1.0, constant: 8.0)
+            trailingConstraint = NSLayoutConstraint(item: self, attribute: .trailing, relatedBy: .equal, toItem: captionLabel!, attribute: .trailing, multiplier: 1.0, constant: 8.0)
+        }
+
         self.addConstraints([bottomConstraint,leadingConstraint,trailingConstraint])
     }
     

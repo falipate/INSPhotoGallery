@@ -337,7 +337,7 @@
 			files = (
 			);
 			inputPaths = (
-				"${SRCROOT}/Pods/Target Support Files/Pods-INSPhotoGallery/Pods-INSPhotoGallery-frameworks.sh",
+				"${PODS_ROOT}/Target Support Files/Pods-INSPhotoGallery/Pods-INSPhotoGallery-frameworks.sh",
 				"${BUILT_PRODUCTS_DIR}/INSNibLoading/INSNibLoading.framework",
 				"${BUILT_PRODUCTS_DIR}/Kingfisher/Kingfisher.framework",
 			);
@@ -348,7 +348,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-INSPhotoGallery/Pods-INSPhotoGallery-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-INSPhotoGallery/Pods-INSPhotoGallery-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */

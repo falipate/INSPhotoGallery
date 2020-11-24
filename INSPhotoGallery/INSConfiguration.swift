@@ -37,6 +37,11 @@ public class INSConfiguration: NSObject {
     open var navigationTitleTextColor: UIColor = .white
     
     /*
+     * Specify color for NavigationBarBackgroundColor
+     */
+    open var navigationBarBackgroundColor: UIColor = .clear
+    
+    /*
     * Specify parameters for INSPhotosOverlayViewable
     */
     open var shadowStartColor: UIColor = UIColor.black.withAlphaComponent(0.5)

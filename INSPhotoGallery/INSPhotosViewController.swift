@@ -204,7 +204,7 @@ open class INSPhotosViewController: UIViewController, UIPageViewControllerDataSo
     override open func viewDidLoad() {
         super.viewDidLoad()
         view.tintColor = UIColor.white
-        view.backgroundColor = UIColor.black
+        view.backgroundColor = configuration.backgroundColor
         pageViewController.view.backgroundColor = UIColor.clear
         
         pageViewController.view.addGestureRecognizer(panGestureRecognizer)
